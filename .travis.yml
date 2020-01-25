@@ -1,0 +1,24 @@
+language: go
+dist: xenial
+
+go:
+  - 1.13.x
+
+notifications:
+  email: false
+
+script:
+  - go build -v
+
+before_deploy:
+  - tar -zcf terraform-provider-vscale.tar.gz terraform-provider-vscale
+
+deploy:
+  provider: releases
+  api_key: ""
+    #secure: ""
+  skip_cleanup: true
+  file: terraform-provider-vscale.tar.gz
+  on:
+    tags: true
+    repo: vozerov/terraform-provider-vscale
