@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/pkg/errors"
 	vscale "github.com/vozerov/go-vscale"
-
-	"time"
 )
 
 func resourceScalet() *schema.Resource {
@@ -19,34 +19,39 @@ func resourceScalet() *schema.Resource {
 		// Update: resourceScaletUpdate,
 		Delete: resourceScaletDelete,
 
+		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
-			"make_from": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"make_from": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
-			"rplan": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"rplan": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
-			"location": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"location": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
-			"ssh_keys": &schema.Schema{
+			"ssh_keys": {
 				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"public_address": &schema.Schema{
+			"public_address": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -96,7 +101,7 @@ func resourceScaletCreate(d *schema.ResourceData, m interface{}) error {
 		return errors.Wrap(err, "creating scalet failed")
 	}
 
-    time.Sleep(15 * time.Second)
+	time.Sleep(20 * time.Second)
 
 	publicAddress, err := findPublicAddress(client, scalet.CTID)
 	if err != nil {

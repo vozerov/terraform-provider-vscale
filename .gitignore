@@ -1,2 +1,4 @@
 terraform-provider-vscale
 vendor
+.idea/
+.build/
