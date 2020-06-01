@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/pkg/errors"
 	vscale "github.com/vozerov/go-vscale"
 )
@@ -17,19 +18,17 @@ func resourceSSHKey() *schema.Resource {
 		Exists: resourceSSHKeyExists,
 
 		Schema: map[string]*schema.Schema{
-			// "id": &schema.Schema{
-			// 	Type:     schema.TypeString,
-			// 	Computed: true,
-			// },
-			"name": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
-			"key": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"key": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 		},
 	}
@@ -79,6 +78,7 @@ func resourceSSHKeyRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 
+	d.SetId(strconv.Itoa(int(sshKey.ID)))
 	d.Set("key", sshKey.Key)
 	d.Set("name", sshKey.Name)
 
@@ -123,7 +123,14 @@ func resourceSSHKeyDelete(d *schema.ResourceData, m interface{}) error {
 		return errors.Wrap(err, "removing SSH key failed")
 	}
 	if !ok && res.StatusCode != 200 {
-		errText := fmt.Sprintf("removing SSH key failed, http code: %d", res.StatusCode)
+		// Hack for check if return err and real delete
+		if exist, err := resourceSSHKeyExists(d, m); err == nil {
+			if !exist {
+				return nil
+			}
+		}
+
+		errText := fmt.Sprintf("removing SSH key failed, http code: %d\n %v", res.StatusCode, err)
 		return errors.New(errText)
 	}
 
